@@ -146,7 +146,7 @@ class Agent():
                     with torch.no_grad():
                         # state.unsqueeze(dim=0): Pytorch expects a batch layer, so add batch dimension i.e. tensor([1, 2, 3]) unsqueezes to tensor([[1, 2, 3]])
                         # policy_dqn returns tensor([[1], [2], [3]]), so squeeze it to tensor([1, 2, 3]).
-                        # argmax finds the index of the largest element.
+                        # argmax finds the index of the largest element.nt 
                         action = policy_dqn(state.unsqueeze(dim=0)).squeeze().argmax()
 
                 # Execute action. Truncated and info is not used.
