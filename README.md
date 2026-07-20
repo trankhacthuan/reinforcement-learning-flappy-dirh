@@ -4,7 +4,6 @@ Cài đặt thuật toán **Deep Q-Network (DQN)** — kèm hai phần mở rộ
 Toàn bộ mạng neural và vòng lặp huấn luyện được viết bằng PyTorch từ đầu (không dùng thư viện RL có sẵn như Stable-Baselines3).
 
 ## 1. Cấu trúc project
-
 ```
 dqn_pytorch/
 ├── agent.py                    # Vòng lặp train/test chính, class Agent
