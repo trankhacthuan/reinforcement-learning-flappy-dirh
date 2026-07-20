@@ -46,7 +46,7 @@ Kết quả (log huấn luyện, biểu đồ reward/epsilon, checkpoint `.pt`) 
 
 ## 4. Các bộ hyperparameter có sẵn (`hyperparameters.yml`)
 
-> ⚠️ **Lưu ý quan trọng**: bản `hyperparameters.yml` hiện tại trên đĩa đã bị chỉnh sửa sau khi `runs/flappybird1.log/.pt` được tạo ra. Cấu hình **gốc** thực sự dùng để train ra kết quả `flappybird1` (best reward 106.4, xem Mục 6)
+> ⚠️ **Lưu ý quan trọng**: bản `hyperparameters.yml` hiện tại trên đĩa đã bị chỉnh sửa sau khi `runs/flappybird1.log/.pt` được tạo ra. Cấu hình **gốc** thực sự dùng để train ra kết quả `flappybird1` (best reward 106.4)
 
 | Tham số | flappybird1 (cấu hình gốc, đã dùng để train) | flappybird3 |
 |---|---|---|
@@ -63,8 +63,6 @@ Kết quả (log huấn luyện, biểu đồ reward/epsilon, checkpoint `.pt`) 
 | `enable_dueling_dqn` | **True** | True |
 | `env_make_params.use_lidar` | False | False |
 | Loss function (tại thời điểm train) | `MSELoss` | `SmoothL1Loss` |
-
-Cả hai bộ đều dùng **Dueling DQN**. Khác biệt thực sự giữa hai lần chạy là: `flappybird1` có thêm **Double DQN**, dùng `MSELoss`, buffer/batch nhỏ hơn, learning rate cao hơn, sync rate thấp hơn (10 bước); `flappybird3` **không** dùng Double DQN nhưng dùng `SmoothL1Loss`, buffer/batch lớn hơn, learning rate thấp hơn, sync rate cao hơn (100 bước), γ cao hơn. Đây là so sánh giữa **hai cấu hình tổng thể khác nhau ở nhiều biến cùng lúc**, không phải một ablation study thuần tuý 1 biến.
 
 ## 5. Thuật toán & kiến trúc mạng
 
