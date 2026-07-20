@@ -46,7 +46,7 @@ Kết quả (log huấn luyện, biểu đồ reward/epsilon, checkpoint `.pt`) 
 
 ## 4. Các bộ hyperparameter có sẵn (`hyperparameters.yml`)
 
-> ⚠️ **Lưu ý quan trọng**: bản `hyperparameters.yml` hiện tại trên đĩa đã bị chỉnh sửa sau khi `runs/flappybird1.log/.pt` được tạo ra. Cấu hình **gốc** thực sự dùng để train ra kết quả `flappybird1` (best reward 106.4, xem Mục 6) là bản dưới đây — **có bật cả Double DQN lẫn Dueling DQN**, không phải vanilla DQN như trong file YAML hiện tại (đã đổi thành `False`/`False`).
+> ⚠️ **Lưu ý quan trọng**: bản `hyperparameters.yml` hiện tại trên đĩa đã bị chỉnh sửa sau khi `runs/flappybird1.log/.pt` được tạo ra. Cấu hình **gốc** thực sự dùng để train ra kết quả `flappybird1` (best reward 106.4, xem Mục 6)
 
 | Tham số | flappybird1 (cấu hình gốc, đã dùng để train) | flappybird3 |
 |---|---|---|
