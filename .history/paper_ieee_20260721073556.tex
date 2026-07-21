@@ -1,0 +1,169 @@
+\documentclass[conference]{IEEEtran}
+
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{cite}
+\usepackage{url}
+
+\title{Training a Flappy Bird Agent with Deep Q-Networks in PyTorch}
+
+\author{
+\IEEEauthorblockN{Nguyen Vo Khang}
+\IEEEauthorblockA{
+Institution: \textit{Fill in your institution}\\
+Email: \textit{Fill in your email}
+}
+}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+This paper presents the implementation and training of a reinforcement learning agent for playing Flappy Bird using the Deep Q-Network (DQN) algorithm. The system is implemented in PyTorch using the \textit{flappy\_bird\_gymnasium} environment and includes experience replay, a target network, epsilon-greedy action selection, and optional Double DQN and Dueling DQN extensions. Two main training configurations are evaluated based on their best observed reward and learning progress. Experimental results show that the improved Dueling DQN configuration, using Huber loss, a larger replay buffer, a larger mini-batch size, and a lower learning rate, achieves a best reward of 272.8 after approximately 548,802 episodes. This substantially outperforms the initial configuration, which reaches a best reward of 106.4 after approximately 941,863 episodes.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Deep Q-Network, Reinforcement Learning, Flappy Bird, PyTorch, Double DQN, Dueling DQN, Experience Replay.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Reinforcement learning (RL) is an important approach in artificial intelligence in which an agent learns to make decisions through interaction with an environment. At each time step, the agent observes the current state, selects an action, receives a reward, and updates its behavior in order to maximize the expected cumulative reward.
+
+Flappy Bird is a suitable environment for RL experiments because its rules are simple while the control task remains challenging. The agent must continuously decide when to flap in order to avoid pipes and survive for as long as possible. This creates a compact but meaningful benchmark for testing value-based reinforcement learning methods.
+
+The objective of this work is to implement DQN from scratch in PyTorch, without relying on high-level RL libraries such as Stable-Baselines3, and to examine how design choices such as Double DQN, Dueling DQN, replay buffer size, mini-batch size, learning rate, and loss function affect training performance.
+
+\section{Background}
+\subsection{Q-Learning}
+Q-learning estimates the action-value function $Q(s,a)$, which represents the expected return obtained by taking action $a$ in state $s$. The Bellman target is defined as:
+\begin{equation}
+y = r + \gamma \max_{a'} Q(s', a'),
+\end{equation}
+where $r$ is the immediate reward, $s'$ is the next state, and $\gamma$ is the discount factor.
+
+\subsection{Deep Q-Network}
+DQN approximates the action-value function using a neural network. Instead of storing a Q-table for individual states, the network receives the state vector as input and outputs a Q-value for each available action. To stabilize training, DQN commonly uses experience replay and a target network. Experience replay stores transitions $(s,a,r,s',done)$, while the target network is periodically synchronized from the policy network to reduce instability in the learning target.
+
+\subsection{Double DQN}
+Standard DQN can overestimate Q-values because the same network is used both to select and evaluate the next action. Double DQN separates these two steps: the policy network selects the best next action, while the target network evaluates that action:
+\begin{equation}
+y = r + \gamma Q_{\text{target}}(s', \arg\max_{a'} Q_{\text{policy}}(s',a')).
+\end{equation}
+
+\subsection{Dueling DQN}
+Dueling DQN decomposes the network into two streams: a state-value stream $V(s)$ and an advantage stream $A(s,a)$. The Q-value is computed as:
+\begin{equation}
+Q(s,a) = V(s) + A(s,a) - \frac{1}{|\mathcal{A}|}\sum_{a'} A(s,a').
+\end{equation}
+This architecture helps the model learn the value of a state even when the advantage differences among actions are small.
+
+\section{Implementation Method}
+\subsection{Environment and Action Space}
+The environment used in this project is \textit{FlappyBird-v0} from the \textit{flappy\_bird\_gymnasium} library. With \textit{use\_lidar=False}, the observation is a 12-dimensional state vector describing the bird and pipe-related variables. The action space contains two discrete actions:
+\begin{itemize}
+    \item $0$: do nothing;
+    \item $1$: flap.
+\end{itemize}
+
+\subsection{Network Architecture}
+The DQN model is implemented in \textit{dqn.py}. In the main configurations, the network receives a 12-dimensional state vector and passes it through a fully connected layer with 512 hidden units followed by a ReLU activation. When Dueling DQN is enabled, the hidden representation is split into a value stream and an advantage stream. When Dueling DQN is disabled, a single linear output layer directly produces the Q-values for the two actions.
+
+\subsection{Training Loop}
+The agent is implemented in \textit{agent.py}. At each episode, the agent resets the environment, selects actions using an epsilon-greedy policy, stores transitions in replay memory, and optimizes the policy network once enough samples are available. Epsilon decays multiplicatively until it reaches a predefined minimum value, allowing the agent to gradually shift from exploration to exploitation.
+
+The current implementation uses Smooth L1 Loss, also known as Huber loss:
+\begin{equation}
+\mathcal{L} = \text{SmoothL1}(Q_{\text{policy}}(s,a), y).
+\end{equation}
+The network is optimized using Adam. The target network is synchronized from the policy network after a fixed number of environment steps controlled by the \textit{network\_sync\_rate} parameter.
+
+\section{Experimental Setup}
+Table~\ref{tab:hyperparameters} summarizes the two main configurations compared in this work. The \textit{flappybird1} configuration corresponds to the original run that produced the recorded checkpoint and log. The \textit{flappybird3} configuration is the improved setup reported in the training results.
+
+\begin{table}[htbp]
+\caption{Main Hyperparameter Configurations}
+\label{tab:hyperparameters}
+\centering
+\begin{tabular}{p{0.34\linewidth}cc}
+\toprule
+\textbf{Parameter} & \textbf{flappybird1} & \textbf{flappybird3} \\
+\midrule
+Replay memory & 100,000 & 200,000 \\
+Mini-batch size & 32 & 64 \\
+$\epsilon_{\text{init}}$ & 1.00 & 1.00 \\
+$\epsilon_{\text{min}}$ & 0.05 & 0.01 \\
+Epsilon decay & 0.99995 & 0.99995 \\
+Sync rate & 10 & 100 \\
+Learning rate & 0.0001 & 0.00005 \\
+Discount factor $\gamma$ & 0.99 & 0.995 \\
+Hidden nodes & 512 & 512 \\
+Double DQN & Yes & No \\
+Dueling DQN & Yes & Yes \\
+Loss & MSE/original record & Smooth L1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Results}
+The training logs show that both configurations improve over time. However, \textit{flappybird3} achieves a higher best reward and reaches important performance milestones with fewer episodes.
+
+\begin{table}[htbp]
+\caption{Recorded Training Results}
+\label{tab:results}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Configuration} & \textbf{Best reward} & \textbf{Episode} & \textbf{Time} \\
+\midrule
+flappybird1 & 106.4 & 941,863 & $\sim$19 CPU hours \\
+flappybird3 & 272.8 & 548,802 & $\sim$12 CPU hours \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Fig.~\ref{fig:flappybird1} and Fig.~\ref{fig:flappybird3} show the average reward and epsilon decay curves for the two training runs. In \textit{flappybird1}, the best reward increases slowly and reaches 106.4 at episode 941,863. In \textit{flappybird3}, the reward improves more rapidly, reaching 116.1 at episode 174,288 and 272.8 at episode 548,802.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{runs/flappybird1.png}
+\caption{Training curve for the flappybird1 configuration.}
+\label{fig:flappybird1}
+\end{figure}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\linewidth]{runs/flappybird3.png}
+\caption{Training curve for the flappybird3 configuration.}
+\label{fig:flappybird3}
+\end{figure}
+
+\section{Discussion}
+The difference between the two configurations indicates that hyperparameter tuning has a significant effect on learning performance. A larger replay memory allows the agent to sample from a more diverse set of experiences. A larger mini-batch size can provide more stable gradient estimates, while a lower learning rate may reduce unstable updates. The higher discount factor used in \textit{flappybird3} also encourages the agent to focus more on long-term survival, which matches the objective of Flappy Bird.
+
+The results also suggest that Dueling DQN is useful in an environment with few actions but meaningful state values. In many states, whether the bird is in a safe or dangerous position may be more important than the immediate difference between the two available actions. The dueling architecture gives the model a more direct way to represent this property.
+
+One limitation of the experiment is that random seeds were not fixed across the full training pipeline, so results may vary between independent runs. In addition, the current analysis is mainly based on the best reward and reward curves. A more rigorous evaluation would include multiple runs, mean performance, standard deviation, and test-time evaluation using saved checkpoints.
+
+\section{Conclusion}
+This paper presented a PyTorch implementation of DQN for training an agent to play Flappy Bird. The system uses core DQN components such as experience replay, a target network, epsilon-greedy exploration, and optional Double DQN and Dueling DQN extensions. The experimental results show that the \textit{flappybird3} configuration achieves a best reward of 272.8, substantially higher than the 106.4 achieved by \textit{flappybird1}. Future work may include fixed-seed experiments, repeated evaluations, Prioritized Experience Replay, and comparisons with policy-gradient methods such as PPO or A2C.
+
+\begin{thebibliography}{00}
+\bibitem{mnih2015human}
+V. Mnih et al., ``Human-level control through deep reinforcement learning,'' \textit{Nature}, vol. 518, pp. 529--533, 2015.
+
+\bibitem{vanhasselt2016deep}
+H. van Hasselt, A. Guez, and D. Silver, ``Deep reinforcement learning with double Q-learning,'' in \textit{Proc. AAAI}, 2016, pp. 2094--2100.
+
+\bibitem{wang2016dueling}
+Z. Wang, T. Schaul, M. Hessel, H. van Hasselt, M. Lanctot, and N. de Freitas, ``Dueling network architectures for deep reinforcement learning,'' in \textit{Proc. ICML}, 2016, pp. 1995--2003.
+
+\bibitem{pytorch}
+PyTorch Contributors, ``PyTorch documentation,'' [Online]. Available: \url{https://pytorch.org/docs/stable/index.html}.
+
+\bibitem{gymnasium}
+Farama Foundation, ``Gymnasium documentation,'' [Online]. Available: \url{https://gymnasium.farama.org/}.
+\end{thebibliography}
+
+\end{document}
