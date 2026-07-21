@@ -74,8 +74,16 @@ Kết quả (log huấn luyện, biểu đồ reward/epsilon, checkpoint `.pt`) 
 - **Loss**: `SmoothL1Loss` (Huber loss) giữa Q hiện tại và Q mục tiêu (Bellman target), có hỗ trợ **Double DQN** để giảm overestimation.
 - **Optimizer**: Adam.
 ## 6. Kết quả huấn luyện đã ghi nhận
+┌─────────────┬────────┬─────────┬─────────────┬───────┬───────────────┬─────────────┬──────────┬───────────┬────────────┐
+│     Run     │ Double │ Dueling │ Replay Size │ Batch │ Learning Rate │ Best Reward │ Episodes │ Thời gian │ Reward/giờ │
+├─────────────┼────────┼─────────┼─────────────┼───────┼───────────────┼─────────────┼──────────┼───────────┼────────────┤
+│ flappybird1 │ ✓      │ ✗       │ 100,000     │ 32    │ 0.00010       │ 106.4       │ 941,863  │ 23.09h    │ 4.6        │
+├─────────────┼────────┼─────────┼─────────────┼───────┼───────────────┼─────────────┼──────────┼───────────┼────────────┤
+│ flappybird2 │ ✓      │ ✗       │ 200,000     │ 64    │ 0.00005       │ 278.9       │ 403,527  │ 5.25h     │ 53.2       │
+├─────────────┼────────┼─────────┼─────────────┼───────┼───────────────┼─────────────┼──────────┼───────────┼────────────┤
+│ flappybird3 │ ✗      │ ✓       │ 200,000     │ 64    │ 0.00005       │ 272.8       │ 548,802  │ 7.33h     │ 37.2       │
+├─────────────┼────────┼─────────┼─────────────┼───────┼───────────────┼─────────────┼──────────┼───────────┼────────────┤
+│ flappybird4 │ ✓      │ ✓       │ 200,000     │ 64    │ 0.00005       │ 204.4       │ 377,378  │ 6.17h     │ 33.1       │
+└─────────────┴────────┴─────────┴─────────────┴───────┴───────────────┴─────────────┴──────────┴───────────┴────────────┘
 
-- `flappybird1` (Double + Dueling DQN, `MSELoss`): sau ~940,000 episode (~19 tiếng chạy CPU), reward tốt nhất đạt **106.4**.
-- `flappybird3` (chỉ Dueling DQN, `SmoothL1Loss`, buffer/batch lớn hơn, lr thấp hơn, sync rate cao hơn): sau ~550,000 episode (~12 tiếng chạy CPU), reward tốt nhất đạt **272.8** — hội tụ nhanh và ổn định hơn.
-
-Xem biểu đồ tại `runs/flappybird1.png` và `runs/flappybird3.png`.
+Xem biểu đồ tại log_comparison.png
